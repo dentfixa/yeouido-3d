@@ -14,6 +14,8 @@ model-viewer{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;backg
 #gal{position:fixed;inset:0;background:rgba(10,12,16,.94);z-index:10;display:none;overflow:auto;-webkit-overflow-scrolling:touch;padding:calc(50px + env(safe-area-inset-top)) 12px 20px}
 #gal.on{display:block}#gal .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}#gal img{width:100%;border-radius:6px}
 #gal .x{position:fixed;top:calc(10px + env(safe-area-inset-top));right:12px}
+#vid{position:fixed;inset:0;background:rgba(10,12,16,.96);z-index:11;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:calc(50px + env(safe-area-inset-top)) 12px 20px}
+#vid.on{display:flex}#vid video{max-width:100%;max-height:85vh;border-radius:6px;background:#000}#vid .x{position:fixed;top:calc(10px + env(safe-area-inset-top));right:12px}#vid .dl{color:#9cf;font-size:13px}
 </style></head><body>
 <model-viewer id="mv" src="yeouido.glb" alt="여의도 3D 모델" camera-controls touch-action="none" tabindex="0"
  camera-target="-150m 40m 0m" camera-orbit="-25deg 62deg 1600m" field-of-view="35deg"
@@ -23,18 +25,19 @@ model-viewer{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;backg
 <div class="bar" id="bar"></div><div class="load" id="ld">불러오는 중… 0%</div>
 <div class="top"><h1>여의도 3D 모델</h1>
 <span class="hint">WASD: 이동 · 방향키: 시점 · +/−: 확대·축소 · Shift: 빠르게 · 드래그 회전 · 휠/핀치 확대 · 우클릭/두 손가락 이동</span>
-<button class="btn" id="gb">렌더 사진</button></div>
+<button class="btn" id="vb">비행 영상</button><button class="btn" id="gb" style="margin-left:0">렌더 사진</button></div>
+<div id="vid"><button class="btn x" id="vx">닫기 ✕</button><video id="fv" src="video/yeouido_flythrough_v8.mp4" poster="video/flythrough_poster.jpg" controls playsinline preload="none"></video><a class="dl" href="video/yeouido_flythrough_v8.mp4" target="_blank">영상 새 창에서 열기 (MP4, 1920×1080, 30초)</a></div>
 <div id="gal"><button class="btn x" id="gx">닫기 ✕</button><div class="grid"><a href="renders/63building_v8.jpg" target="_blank"><img src="renders/63building_v8.jpg" loading="lazy"></a><a href="renders/aerial_v8.jpg" target="_blank"><img src="renders/aerial_v8.jpg" loading="lazy"></a><a href="renders/assembly_v8.jpg" target="_blank"><img src="renders/assembly_v8.jpg" loading="lazy"></a><a href="renders/night_v8.jpg" target="_blank"><img src="renders/night_v8.jpg" loading="lazy"></a><a href="renders/parc1_v8.jpg" target="_blank"><img src="renders/parc1_v8.jpg" loading="lazy"></a><a href="renders/railwaybridge_v7.jpg" target="_blank"><img src="renders/railwaybridge_v7.jpg" loading="lazy"></a><a href="renders/skyline_v7.jpg" target="_blank"><img src="renders/skyline_v7.jpg" loading="lazy"></a><a href="renders/street_v7.jpg" target="_blank"><img src="renders/street_v7.jpg" loading="lazy"></a></div></div>
 <script>
 const mv=document.getElementById('mv'),bar=document.getElementById('bar'),ld=document.getElementById('ld');
 mv.addEventListener('progress',e=>{const p=Math.round(e.detail.totalProgress*100);bar.style.width=p+'%';ld.textContent='불러오는 중… '+p+'%';if(p>=100){bar.style.display='none';ld.style.display='none'}});
-const gal=document.getElementById('gal');document.getElementById('gb').onclick=()=>gal.classList.add('on');document.getElementById('gx').onclick=()=>gal.classList.remove('on');
+const gal=document.getElementById('gal'),vid=document.getElementById('vid'),fv=document.getElementById('fv');document.getElementById('vb').onclick=()=>{vid.classList.add('on');fv.play().catch(()=>{})};document.getElementById('vx').onclick=()=>{fv.pause();vid.classList.remove('on')};if(location.hash==='#video')vid.classList.add('on');document.getElementById('gb').onclick=()=>gal.classList.add('on');document.getElementById('gx').onclick=()=>gal.classList.remove('on');
 const q=new URLSearchParams(location.search);if(q.get('orbit'))mv.cameraOrbit=q.get('orbit');if(q.get('target'))mv.cameraTarget=q.get('target');if(q.get('fov'))mv.fieldOfView=q.get('fov');
 mv.addEventListener('dblclick',e=>{const h=mv.positionAndNormalFromPoint(e.clientX,e.clientY);if(h){const p=h.position;mv.cameraTarget=p.x+'m '+p.y+'m '+p.z+'m';const o=mv.getCameraOrbit();mv.cameraOrbit=o.theta+'rad '+o.phi+'rad '+Math.max(30,o.radius*0.35)+'m';}});
 const keys=new Set();
 const nm=c=>c.startsWith('Key')?c.slice(3).toLowerCase():({Equal:'+',NumpadAdd:'+',Minus:'-',NumpadSubtract:'-'})[c]||c;
 let shiftDown=false;
-addEventListener('keydown',e=>{if(gal.classList.contains('on')){if(e.code==='Escape')gal.classList.remove('on');return;}
+addEventListener('keydown',e=>{if(vid.classList.contains('on')){if(e.code==='Escape'){fv.pause();vid.classList.remove('on');}return;}if(gal.classList.contains('on')){if(e.code==='Escape')gal.classList.remove('on');return;}
  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','PageUp','PageDown','Space'].includes(e.code))e.preventDefault();
  if(e.code==='ShiftLeft'||e.code==='ShiftRight')shiftDown=true; else keys.add(nm(e.code)); keys.shift=shiftDown||e.shiftKey;},{capture:true});
 addEventListener('keyup',e=>{if(e.code==='ShiftLeft'||e.code==='ShiftRight')shiftDown=false; else keys.delete(nm(e.code)); keys.shift=shiftDown;},{capture:true});
