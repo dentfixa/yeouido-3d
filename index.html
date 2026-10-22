@@ -43,8 +43,12 @@ function tick(t){const dt=Math.min(0.1,(t-last)/1000);last=t;
   const f=(k('w')?1:0)-(k('s')?1:0),s=(k('d')?1:0)-(k('a')?1:0);
   if(f||s){const n=Math.hypot(f,s),sp=r*0.0444*dt*boost/n;const fx=-Math.sin(th),fz=-Math.cos(th),sx=Math.cos(th),sz=-Math.sin(th);
    tg.x+=(fx*f+sx*s)*sp;tg.z+=(fz*f+sz*s)*sp;mv.cameraTarget=tg.x+'m '+tg.y+'m '+tg.z+'m';}
-  th+=((k('ArrowLeft')?1:0)-(k('ArrowRight')?1:0))*0.1*dt*boost;
-  ph=Math.min(1.536,Math.max(0.01,ph+((k('ArrowDown')?1:0)-(k('ArrowUp')?1:0))*0.0667*dt*boost));
+  const yaw=((k('ArrowLeft')?1:0)-(k('ArrowRight')?1:0))*0.1*dt*boost, pit=((k('ArrowUp')?1:0)-(k('ArrowDown')?1:0))*0.0667*dt*boost;
+  if(yaw||pit){const cx=tg.x+r*Math.sin(th)*Math.sin(ph),cy=tg.y+r*Math.cos(ph),cz=tg.z+r*Math.cos(th)*Math.sin(ph);
+   th+=yaw; ph=Math.min(1.536,Math.max(0.05,ph+pit));
+   if(Math.cos(ph)>0) r=Math.min(r,Math.max(2,(cy-1)/Math.cos(ph)));
+   tg.x=cx-r*Math.sin(th)*Math.sin(ph); tg.y=cy-r*Math.cos(ph); tg.z=cz-r*Math.cos(th)*Math.sin(ph);
+   mv.cameraTarget=tg.x+'m '+tg.y+'m '+tg.z+'m';}
   const zin=k('+')||k('=')||k('PageUp')||k('e'),zout=k('-')||k('_')||k('PageDown')||k('q');
   if(zin)r*=Math.pow(Math.pow(0.5,boost/9),dt);if(zout)r*=Math.pow(Math.pow(2,boost/9),dt);r=Math.max(2,Math.min(12000,r));
   mv.cameraOrbit=th+'rad '+ph+'rad '+r+'m';mv.jumpCameraToGoal();}
