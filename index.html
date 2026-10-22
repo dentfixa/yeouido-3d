@@ -17,7 +17,7 @@ model-viewer{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;backg
 </style></head><body>
 <model-viewer id="mv" src="yeouido.glb" alt="여의도 3D 모델" camera-controls touch-action="none" tabindex="0"
  camera-target="-150m 40m 0m" camera-orbit="-25deg 62deg 1600m" field-of-view="35deg"
- min-camera-orbit="auto 0deg 2m" max-camera-orbit="auto 180deg 12000m" min-field-of-view="8deg" max-field-of-view="60deg"
+ min-camera-orbit="auto 0deg 2m" max-camera-orbit="auto 88deg 12000m" min-field-of-view="8deg" max-field-of-view="60deg"
  interpolation-decay="100" zoom-sensitivity="0.25" environment-image="env.hdr" tone-mapping="neutral" exposure="1.05" shadow-intensity="0.8" interaction-prompt="none">
 <div slot="progress-bar"></div></model-viewer>
 <div class="bar" id="bar"></div><div class="load" id="ld">불러오는 중… 0%</div>
@@ -44,10 +44,17 @@ function tick(t){const dt=Math.min(0.1,(t-last)/1000);last=t;
   if(f||s){const n=Math.hypot(f,s),sp=r*0.0444*dt*boost/n;const fx=-Math.sin(th),fz=-Math.cos(th),sx=Math.cos(th),sz=-Math.sin(th);
    tg.x+=(fx*f+sx*s)*sp;tg.z+=(fz*f+sz*s)*sp;mv.cameraTarget=tg.x+'m '+tg.y+'m '+tg.z+'m';}
   th+=((k('ArrowLeft')?1:0)-(k('ArrowRight')?1:0))*0.1*dt*boost;
-  ph=Math.min(Math.PI-0.01,Math.max(0.01,ph+((k('ArrowDown')?1:0)-(k('ArrowUp')?1:0))*0.0667*dt*boost));
+  ph=Math.min(1.536,Math.max(0.01,ph+((k('ArrowDown')?1:0)-(k('ArrowUp')?1:0))*0.0667*dt*boost));
   const zin=k('+')||k('=')||k('PageUp')||k('e'),zout=k('-')||k('_')||k('PageDown')||k('q');
   if(zin)r*=Math.pow(Math.pow(0.5,boost/9),dt);if(zout)r*=Math.pow(Math.pow(2,boost/9),dt);r=Math.max(2,Math.min(12000,r));
   mv.cameraOrbit=th+'rad '+ph+'rad '+r+'m';mv.jumpCameraToGoal();}
  requestAnimationFrame(tick);}
 requestAnimationFrame(tick);
+let fixing=false;
+function guard(){if(fixing)return;const t=mv.getCameraTarget(),o=mv.getCameraOrbit();let ch=false;
+ if(t.y<1){t.y=1;ch=true;}
+ let ph=o.phi;const h=t.y+o.radius*Math.cos(ph);
+ if(h<2){ph=Math.acos(Math.min(1,Math.max(-1,(2-t.y)/o.radius)));ch=true;}
+ if(ch){fixing=true;mv.cameraTarget=t.x+'m '+t.y+'m '+t.z+'m';mv.cameraOrbit=o.theta+'rad '+ph+'rad '+o.radius+'m';fixing=false;}}
+mv.addEventListener('camera-change',guard);
 </script></body></html>
