@@ -22,7 +22,7 @@ model-viewer{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;backg
 <div slot="progress-bar"></div></model-viewer>
 <div class="bar" id="bar"></div><div class="load" id="ld">불러오는 중… 0%</div>
 <div class="top"><h1>여의도 3D 모델</h1>
-<span class="hint">드래그 회전 · 휠/핀치 확대 · 우클릭/두 손가락 이동 · 더블클릭 확대 · 방향키 이동 · +/− 확대·축소 · Shift+방향키 회전</span>
+<span class="hint">WASD: 이동 · 방향키: 시점 · +/−: 확대·축소 · Shift: 빠르게 · 드래그 회전 · 휠/핀치 확대 · 우클릭/두 손가락 이동</span>
 <button class="btn" id="gb">렌더 사진</button></div>
 <div id="gal"><button class="btn x" id="gx">닫기 ✕</button><div class="grid"><a href="renders/63building_v8.jpg" target="_blank"><img src="renders/63building_v8.jpg" loading="lazy"></a><a href="renders/aerial_v8.jpg" target="_blank"><img src="renders/aerial_v8.jpg" loading="lazy"></a><a href="renders/assembly_v8.jpg" target="_blank"><img src="renders/assembly_v8.jpg" loading="lazy"></a><a href="renders/night_v8.jpg" target="_blank"><img src="renders/night_v8.jpg" loading="lazy"></a><a href="renders/parc1_v8.jpg" target="_blank"><img src="renders/parc1_v8.jpg" loading="lazy"></a><a href="renders/railwaybridge_v7.jpg" target="_blank"><img src="renders/railwaybridge_v7.jpg" loading="lazy"></a><a href="renders/skyline_v7.jpg" target="_blank"><img src="renders/skyline_v7.jpg" loading="lazy"></a><a href="renders/street_v7.jpg" target="_blank"><img src="renders/street_v7.jpg" loading="lazy"></a></div></div>
 <script>
@@ -39,15 +39,14 @@ addEventListener('keyup',e=>{keys.delete(e.key.length===1?e.key.toLowerCase():e.
 addEventListener('blur',()=>keys.clear());
 let last=performance.now();
 function tick(t){const dt=Math.min(0.1,(t-last)/1000);last=t;
- if(keys.size){const o=mv.getCameraOrbit(),tg=mv.getCameraTarget();let th=o.theta,ph=o.phi,r=o.radius;
-  const up=keys.has('ArrowUp')||keys.has('w'),dn=keys.has('ArrowDown')||keys.has('s'),lf=keys.has('ArrowLeft')||keys.has('a'),rt=keys.has('ArrowRight')||keys.has('d');
-  const zin=keys.has('+')||keys.has('=')||keys.has('PageUp')||keys.has('e'),zout=keys.has('-')||keys.has('_')||keys.has('PageDown')||keys.has('q');
-  if(keys.shift){th+=((lf?1:0)-(rt?1:0))*1.5*dt;ph=Math.min(Math.PI-0.01,Math.max(0.01,ph+((dn?1:0)-(up?1:0))*1.0*dt));}
-  else{const sp=r*0.4*dt;const f=(up?1:0)-(dn?1:0),s=(rt?1:0)-(lf?1:0);
-   // camera looks toward -(sin th, cos th) in x/z
-   const fx=-Math.sin(th),fz=-Math.cos(th),sx=Math.cos(th),sz=-Math.sin(th);
+ if(keys.size){const o=mv.getCameraOrbit(),tg=mv.getCameraTarget();let th=o.theta,ph=o.phi,r=o.radius;const k=x=>keys.has(x),boost=keys.shift?3:1;
+  const f=(k('w')?1:0)-(k('s')?1:0),s=(k('d')?1:0)-(k('a')?1:0);
+  if(f||s){const n=Math.hypot(f,s),sp=r*0.4*dt*boost/n;const fx=-Math.sin(th),fz=-Math.cos(th),sx=Math.cos(th),sz=-Math.sin(th);
    tg.x+=(fx*f+sx*s)*sp;tg.z+=(fz*f+sz*s)*sp;mv.cameraTarget=tg.x+'m '+tg.y+'m '+tg.z+'m';}
-  if(zin)r*=Math.pow(0.5,dt);if(zout)r*=Math.pow(2,dt);r=Math.max(2,Math.min(12000,r));
+  th+=((k('ArrowLeft')?1:0)-(k('ArrowRight')?1:0))*0.9*dt*boost;
+  ph=Math.min(Math.PI-0.01,Math.max(0.01,ph+((k('ArrowDown')?1:0)-(k('ArrowUp')?1:0))*0.6*dt*boost));
+  const zin=k('+')||k('=')||k('PageUp')||k('e'),zout=k('-')||k('_')||k('PageDown')||k('q');
+  if(zin)r*=Math.pow(Math.pow(0.5,boost),dt);if(zout)r*=Math.pow(Math.pow(2,boost),dt);r=Math.max(2,Math.min(12000,r));
   mv.cameraOrbit=th+'rad '+ph+'rad '+r+'m';mv.jumpCameraToGoal();}
  requestAnimationFrame(tick);}
 requestAnimationFrame(tick);
